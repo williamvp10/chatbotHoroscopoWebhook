@@ -4,8 +4,8 @@ const bodyParser = require('body-parser');
 const request = require('request');
 const app = express();
 // bot fb page
-const token = "EAAghpqdArs0BABYz6RzM7dEV16ZC6HjNybYQAkKUrbiShFKpXx8wQtc1qhKpDVJcZCeg8f8odRZCdpwQHu0jH0e1DykSnAwrj4SPOj4rsBWymTQabXBq7Uv1AgMSYr8iJ9iurogN2WCgJVyxTEkXVoqCsghQuVKXhZAYoipIIAZDZD";
-const msngerServerUrl = 'https://chatbotwilliam.herokuapp.com/bot';
+const token = "EAAF2JH3flrIBADA6UOwQkNHXFThQfyfUwjPW0h1Kc5soEW0FBjO8cmln7B1Iyxl7f9HK1IDTbsmioxp5PemmZC6DDCEBlO95rjMxAvpRhLzjvwrWZCGOwjc1VrY64nIqSMWTgStOZAk2ZBMhseMYnkJZCb6GmPX2gZCVOHZCmQD6gZDZD";
+const msngerServerUrl = 'https://blockchainchatbot.herokuapp.com/bot';
 //global var
 
 app.set('port', (process.env.PORT || 5000));
@@ -22,7 +22,7 @@ var EnviarImagen = false;
 var ConsultarImagen = false;
 // for Facebook verification
 app.get('/webhook/', function (req, res) {
-    if (req.query['hub.verify_token'] === 'iam-weatherman-bot') {
+    if (req.query['hub.verify_token'] === 'iam-blockchain-bot') {
         res.send(req.query['hub.challenge']);
     }
     res.send('Error, wrong token');
@@ -100,6 +100,28 @@ app.post('/webhook/', function (req, res) {
 
     res.sendStatus(200);
 });
+
+function InfoPersona(event, sender) {
+    if (event.message && event.message.text) {
+        let text = event.message.text;
+        //send it to the bot
+        request({
+            url: msngerServerUrl,
+            method: 'POST',
+            form: {
+                'userUtterance': text
+            }
+        },
+                function (error, response, body) {
+                    //response is from the bot
+                    if (!error && response.statusCode === 200) {
+                        selectTypeBotMessage(sender, body);
+                    } else {
+                        sendTextMessage(sender, 'Error!');
+                    }
+                });
+    }
+}
 
 function sendtextbot(event, sender) {
     if (event.message && event.message.text) {
