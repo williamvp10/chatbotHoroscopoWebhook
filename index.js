@@ -44,6 +44,7 @@ app.post('/webhook/', function (req, res) {
         let time = req.body.entry[0].time;
         let text = "";
         if (EnviarImagen || ConsultarImagen) {
+            console.log("entroo")
             var type="";
             if(EnviarImagen){
                 type = "RespuestaEnviarImagen" ;
@@ -58,9 +59,10 @@ app.post('/webhook/', function (req, res) {
                     url: msngerServerUrl,
                     method: 'POST',
                     form: {
+                        'userName': user.first_name,
                         'userType': type,
                         'userUtterance': text,
-                        'url':url
+                        'userImagen':url
                     }
                 }, function (error, response, body) {
                     //response is from the bot
@@ -83,6 +85,7 @@ app.post('/webhook/', function (req, res) {
                     url: msngerServerUrl,
                     method: 'POST',
                     form: {
+                        'userName': user.first_name,
                         'userType': type,
                         'userUtterance': text
                     }
@@ -130,6 +133,7 @@ function sendtextbot(event, sender) {
             url: msngerServerUrl,
             method: 'POST',
             form: {
+                'userName': user.first_name,
                 'userUtterance': text
             }
         },
