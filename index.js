@@ -53,7 +53,8 @@ app.post('/webhook/', function (req, res) {
             }
             EnviarImagen=false; ConsultarImagen=false;
             try {
-                var url = event.message.attachments.payload.url;
+                var url = event.message.attachments[0].payload.url;
+                console.log("url---"+url);
                 console.log(type);
                 request({
                     url: msngerServerUrl,
@@ -79,7 +80,6 @@ app.post('/webhook/', function (req, res) {
             try {
                 text = req.body.entry[0].messaging[i].postback.title;
                 var type = "" + req.body.entry[0].messaging[i].postback.payload;
-                var type1 = type.split(":")[0];
                 console.log(type);
                 request({
                     url: msngerServerUrl,
