@@ -20,6 +20,7 @@ app.get('/', function (req, res) {
 });
 var EnviarImagen = false;
 var ConsultarImagen = false;
+var user;
 // for Facebook verification
 app.get('/webhook/', function (req, res) {
     if (req.query['hub.verify_token'] === 'iam-blockchain-bot') {
@@ -38,15 +39,16 @@ app.post('/webhook/', function (req, res) {
 
         let event = req.body.entry[0].messaging[i];
         let sender = event.sender.id;
+        InfoPersona(sender);
         let recipient = event.recipient.id;
         let time = req.body.entry[0].time;
         let text = "";
         if (EnviarImagen || ConsultarImagen) {
             var type="";
             if(EnviarImagen){
-                type = "EnviarImagen" ;
+                type = "RespuestaEnviarImagen" ;
             }else{
-                type = "ConsultarImagen" ;
+                type = "RespuestaConsultarImagen" ;
             }
             EnviarImagen=false; ConsultarImagen=false;
             try {
@@ -101,26 +103,23 @@ app.post('/webhook/', function (req, res) {
     res.sendStatus(200);
 });
 
-function InfoPersona(event, sender) {
-    if (event.message && event.message.text) {
-        let text = event.message.text;
-        //send it to the bot
-        request({
-            url: msngerServerUrl,
-            method: 'POST',
-            form: {
-                'userUtterance': text
-            }
-        },
-                function (error, response, body) {
-                    //response is from the bot
-                    if (!error && response.statusCode === 200) {
-                        selectTypeBotMessage(sender, body);
-                    } else {
-                        sendTextMessage(sender, 'Error!');
-                    }
-                });
-    }
+function InfoPersona(sender) {
+    request({
+        url: 'https://graph.facebook.com/' + sender + '?fields=first_name,last_name&access_token=' + token,
+        method: 'GET',
+    }, function (error, response, body) {
+       console.log(body);
+       var infou = JSON.parse(body);
+       console.log(infou);
+       let u = '{';
+        u += '"first_name": "'+infou.first_name+'",';
+        u += '"last_name": "' + infou.last_name + '",';
+         u += '"id": "' + infou.id + '"';
+        u += '}';
+        user = JSON.parse(u);
+        console.log(user);
+    });
+
 }
 
 function sendtextbot(event, sender) {
@@ -162,6 +161,8 @@ function selectTypeBotMessage(sender, body) {
             var n3 = ty.localeCompare(t3);
             var t4 = "ConsultarImagen";
             var n4 = ty.localeCompare(t4);
+            var t5 = "responseEnviarImagen";
+            var n5 = ty.localeCompare(t5);
             if (n1 === 0) {
                 sendTextMessage(sender, botOut.botUtterance);
             } else if (n2 === 0) {
@@ -171,6 +172,8 @@ function selectTypeBotMessage(sender, body) {
                 sendTextMessage(sender, botOut.botUtterance);
             } else if (n4 === 0) {
                 ConsultarImagen = true;
+                sendTextMessage(sender, botOut.botUtterance);
+            } else if (n5 === 0) {
                 sendTextMessage(sender, botOut.botUtterance);
             } else {
                 if (botOut.buttons.length === 0) {
