@@ -18,8 +18,8 @@ app.use(express.static('public'));
 app.get('/', function (req, res) {
     res.send('Hello world, I am Weatherman!.');
 });
-var EnviarImagen = false;
-var ConsultarImagen = false;
+var varPreguntaImagen = false;
+var varPreguntaHash = false;
 var user;
 // for Facebook verification
 app.get('/webhook/', function (req, res) {
@@ -43,18 +43,20 @@ app.post('/webhook/', function (req, res) {
         let recipient = event.recipient.id;
         let time = req.body.entry[0].time;
         let text = "";
-        if (EnviarImagen || ConsultarImagen) {
-            console.log("entroo")
-            var type="";
-            if(EnviarImagen){
-                type = "RespuestaEnviarImagen" ;
-            }else{
-                type = "RespuestaConsultarImagen" ;
+        if (varPreguntaImagen || varPreguntaHash) {
+            var type = "";
+            if (varPreguntaImagen) {
+                type = "requestCertificarImagen";
             }
-            EnviarImagen=false; ConsultarImagen=false;
+            if (varPreguntaHash) {
+                type = "requestConsultarImagen";
+            }
+            varPreguntaImagen = false;
+            varPreguntaHash = false;
+            text = event.message.text;
             try {
                 var url = event.message.attachments[0].payload.url;
-                console.log("url---"+url);
+                console.log("url---" + url);
                 console.log(type);
                 request({
                     url: msngerServerUrl,
@@ -63,7 +65,7 @@ app.post('/webhook/', function (req, res) {
                         'userName': user.first_name,
                         'userType': type,
                         'userUtterance': text,
-                        'userImagen':url
+                        'userImagen': url
                     }
                 }, function (error, response, body) {
                     //response is from the bot
@@ -111,13 +113,13 @@ function InfoPersona(sender) {
         url: 'https://graph.facebook.com/' + sender + '?fields=first_name,last_name&access_token=' + token,
         method: 'GET',
     }, function (error, response, body) {
-       console.log(body);
-       var infou = JSON.parse(body);
-       console.log(infou);
-       let u = '{';
-        u += '"first_name": "'+infou.first_name+'",';
+        console.log(body);
+        var infou = JSON.parse(body);
+        console.log(infou);
+        let u = '{';
+        u += '"first_name": "' + infou.first_name + '",';
         u += '"last_name": "' + infou.last_name + '",';
-         u += '"id": "' + infou.id + '"';
+        u += '"id": "' + infou.id + '"';
         u += '}';
         user = JSON.parse(u);
         console.log(user);
@@ -147,7 +149,6 @@ function sendtextbot(event, sender) {
                 });
     }
 }
-
 function selectTypeBotMessage(sender, body) {
     // Print out the response body
     console.log(body);
@@ -161,23 +162,37 @@ function selectTypeBotMessage(sender, body) {
             var n1 = ty.localeCompare(t1);
             var t2 = "MenuOpciones";
             var n2 = ty.localeCompare(t2);
-            var t3 = "EnviarImagen";
+            var t3 = "CertificarImagen";
             var n3 = ty.localeCompare(t3);
             var t4 = "ConsultarImagen";
             var n4 = ty.localeCompare(t4);
-            var t5 = "responseEnviarImagen";
+            var t5 = "PreguntaImagen";
             var n5 = ty.localeCompare(t5);
+            var t6 = "PreguntaHash";
+            var n6 = ty.localeCompare(t6);
             if (n1 === 0) {
                 sendTextMessage(sender, botOut.botUtterance);
             } else if (n2 === 0) {
                 sendTextMessageType(sender, botOut);
             } else if (n3 === 0) {
-                EnviarImagen = true;
-                sendTextMessage(sender, botOut.botUtterance);
+                sendTextMessageList(sender, botOut)
+                if (botOut.buttons.length === 0) {
+                    sendTextMessage(sender, botOut.botUtterance);
+                } else {
+                    sendTextMessageType(sender, botOut);
+                }
             } else if (n4 === 0) {
-                ConsultarImagen = true;
-                sendTextMessage(sender, botOut.botUtterance);
+                sendTextMessageList(sender, botOut)
+                if (botOut.buttons.length === 0) {
+                    sendTextMessage(sender, botOut.botUtterance);
+                } else {
+                    sendTextMessageType(sender, botOut);
+                }
             } else if (n5 === 0) {
+                varPreguntaImagen = true;
+                sendTextMessage(sender, botOut.botUtterance);
+            } else if (n6 === 0) {
+                varPreguntaHash = true;
                 sendTextMessage(sender, botOut.botUtterance);
             } else {
                 if (botOut.buttons.length === 0) {
