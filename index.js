@@ -43,16 +43,9 @@ app.post('/webhook/', function (req, res) {
         let recipient = event.recipient.id;
         let time = req.body.entry[0].time;
         let text = "";
-        if (varPreguntaImagen || varPreguntaHash) {
-            var type = "";
-            if (varPreguntaImagen) {
-                type = "requestCertificarImagen";
-            }
-            if (varPreguntaHash) {
-                type = "requestConsultarImagen";
-            }
+        if (varPreguntaImagen) {
+            var type = "requestCertificarImagen";
             varPreguntaImagen = false;
-            varPreguntaHash = false;
             text = event.message.text;
             try {
                 var url = event.message.attachments[0].payload.url;
@@ -78,6 +71,28 @@ app.post('/webhook/', function (req, res) {
             } catch (err) {
                 sendtextbot(event, sender);
             }
+        } else if (varPreguntaHash) {
+            var type = "requestConsultarImagen";
+            varPreguntaHash = false;
+            text = event.message.text;
+            ;
+            request({
+                url: msngerServerUrl,
+                method: 'POST',
+                form: {
+                    'userName': user.first_name,
+                    'userType': type,
+                    'userUtterance': text
+                }
+            }, function (error, response, body) {
+                //response is from the bot
+                if (!error && response.statusCode === 200) {
+                    selectTypeBotMessage(sender, body);
+                } else {
+                    sendTextMessage(sender, 'Error!');
+                }
+            });
+
         } else {
             try {
                 text = req.body.entry[0].messaging[i].postback.title;
