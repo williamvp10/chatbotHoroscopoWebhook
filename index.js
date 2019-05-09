@@ -7,7 +7,9 @@ const app = express();
 const token = "EAAF2JH3flrIBADA6UOwQkNHXFThQfyfUwjPW0h1Kc5soEW0FBjO8cmln7B1Iyxl7f9HK1IDTbsmioxp5PemmZC6DDCEBlO95rjMxAvpRhLzjvwrWZCGOwjc1VrY64nIqSMWTgStOZAk2ZBMhseMYnkJZCb6GmPX2gZCVOHZCmQD6gZDZD";
 const msngerServerUrl = 'https://blockchainchatbot.herokuapp.com/bot';
 //global var
-
+var varPreguntaImagen = false;
+var varPreguntaHash = false;
+var user;
 app.set('port', (process.env.PORT || 5000));
 // Process application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({extended: false}));
@@ -18,9 +20,7 @@ app.use(express.static('public'));
 app.get('/', function (req, res) {
     res.send('Hello world, I am Weatherman!.');
 });
-var varPreguntaImagen = false;
-var varPreguntaHash = false;
-var user;
+
 // for Facebook verification
 app.get('/webhook/', function (req, res) {
     if (req.query['hub.verify_token'] === 'iam-blockchain-bot') {
@@ -46,7 +46,6 @@ app.post('/webhook/', function (req, res) {
         if (varPreguntaImagen) {
             var type = "requestCertificarImagen";
             varPreguntaImagen = false;
-            text = event.message.text;
             try {
                 var url = event.message.attachments[0].payload.url;
                 console.log("url---" + url);
@@ -58,7 +57,7 @@ app.post('/webhook/', function (req, res) {
                         'userName': user.first_name,
                         'userType': type,
                         'userUtterance': text,
-                        'userImagen': url
+                                'userImagen': url
                     }
                 }, function (error, response, body) {
                     //response is from the bot
