@@ -8,6 +8,7 @@ const token = "EAAF2JH3flrIBADA6UOwQkNHXFThQfyfUwjPW0h1Kc5soEW0FBjO8cmln7B1Iyxl7
 const msngerServerUrl = 'https://blockchainchatbot.herokuapp.com/bot';
 //global var
 var varPreguntaImagen = false;
+var varPreguntaImagen2 = false;
 var varPreguntaHash = false;
 var user;
 app.set('port', (process.env.PORT || 5000));
@@ -43,9 +44,16 @@ app.post('/webhook/', function (req, res) {
         let recipient = event.recipient.id;
         let time = req.body.entry[0].time;
         let text = "";
-        if (varPreguntaImagen) {
-            var type = "requestCertificarImagen";
+        if (varPreguntaImagen || varPreguntaImagen2) {
+            
+            var type = "";
+            if(varPreguntaImagen){
+                type = "requestCertificarImagen";
+            }else{
+               type = "requestConsultarImagen2"; 
+            }
             varPreguntaImagen = false;
+            varPreguntaImagen2 = false;
             try {
                 var url = event.message.attachments[0].payload.url;
                 console.log("url---" + url);
@@ -57,7 +65,7 @@ app.post('/webhook/', function (req, res) {
                         'userName': user.first_name,
                         'userType': type,
                         'userUtterance': text,
-                                'userImagen': url
+                        'userImagen': url
                     }
                 }, function (error, response, body) {
                     //response is from the bot
@@ -184,6 +192,10 @@ function selectTypeBotMessage(sender, body) {
             var n5 = ty.localeCompare(t5);
             var t6 = "PreguntaHash";
             var n6 = ty.localeCompare(t6);
+            var t7 = "PreguntaImagen2";
+            var n7 = ty.localeCompare(t7);
+            var t8 = "Error";
+            var n8 = ty.localeCompare(t8);
             if (n1 === 0) {
                 sendTextMessage(sender, botOut.botUtterance);
             } else if (n2 === 0) {
@@ -208,7 +220,13 @@ function selectTypeBotMessage(sender, body) {
             } else if (n6 === 0) {
                 varPreguntaHash = true;
                 sendTextMessage(sender, botOut.botUtterance);
-            } else {
+            } else if (n7 === 0) {
+                varPreguntaImagen2 = true;
+                sendTextMessage(sender, botOut.botUtterance);
+            }else if (n8 === 0) {
+                sendTextMessage(sender, botOut.botUtterance);
+            }  
+            else {
                 if (botOut.buttons.length === 0) {
                     sendTextMessage(sender, botOut.botUtterance);
                 } else {
