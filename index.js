@@ -4,13 +4,11 @@ const bodyParser = require('body-parser');
 const request = require('request');
 const app = express();
 // bot fb page
-const token = "EAAF2JH3flrIBADA6UOwQkNHXFThQfyfUwjPW0h1Kc5soEW0FBjO8cmln7B1Iyxl7f9HK1IDTbsmioxp5PemmZC6DDCEBlO95rjMxAvpRhLzjvwrWZCGOwjc1VrY64nIqSMWTgStOZAk2ZBMhseMYnkJZCb6GmPX2gZCVOHZCmQD6gZDZD";
-const msngerServerUrl = 'https://blockchainchatbot.herokuapp.com/bot';
+const token = "EAAFygyhbsUIBACRpmlA8b30AJD7RcMZA2MD25HoVyMQ7cxnfMGKucppG8ZCnPIVjydJlUqj4D67q93adtkZBlvpsBr8C4x1ZA5WTmdeKhReOpheGNSJcNN6ZBkZBM7SDREUOXebEXBS45tUQpZBZCP1SW40PAHXEoTRcjP9coD6R6gZDZD";
+const msngerServerUrl = 'https://horoscopobot.herokuapp.com/bot';
 //global var
-var varPreguntaImagen = false;
-var varPreguntaImagen2 = false;
-var varPreguntaHash = false;
 var user;
+var varPreguntaSigno = false;
 app.set('port', (process.env.PORT || 5000));
 // Process application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({extended: false}));
@@ -24,7 +22,7 @@ app.get('/', function (req, res) {
 
 // for Facebook verification
 app.get('/webhook/', function (req, res) {
-    if (req.query['hub.verify_token'] === 'iam-blockchain-bot') {
+    if (req.query['hub.verify_token'] === 'Horoscopo-Bot') {
         res.send(req.query['hub.challenge']);
     }
     res.send('Error, wrong token');
@@ -44,45 +42,13 @@ app.post('/webhook/', function (req, res) {
         let recipient = event.recipient.id;
         let time = req.body.entry[0].time;
         let text = "";
-        if (varPreguntaImagen || varPreguntaImagen2) {
-
+        if (varPreguntaSigno) {
             var type = "";
-            if (varPreguntaImagen) {
-                type = "requestCertificarImagen";
-            } else {
-                type = "requestConsultarImagen2";
+            if (varPreguntaSigno) {
+                type = "requestServicioHoroscopo";
             }
-            varPreguntaImagen = false;
-            varPreguntaImagen2 = false;
-            try {
-                var url = event.message.attachments[0].payload.url;
-                console.log("url---" + url);
-                console.log(type);
-                request({
-                    url: msngerServerUrl,
-                    method: 'POST',
-                    form: {
-                        'userName': user.first_name,
-                        'userType': type,
-                        'userUtterance': text,
-                        'userImagen': url
-                    }
-                }, function (error, response, body) {
-                    //response is from the bot
-                    if (!error && response.statusCode === 200) {
-                        selectTypeBotMessage(sender, body);
-                    } else {
-                        sendTextMessage(sender, 'Error!');
-                    }
-                });
-            } catch (err) {
-                sendtextbot(event, sender);
-            }
-        } else if (varPreguntaHash) {
-            var type = "requestConsultarImagen";
-            varPreguntaHash = false;
+            varPreguntaSigno = false;
             text = event.message.text;
-            ;
             request({
                 url: msngerServerUrl,
                 method: 'POST',
@@ -99,7 +65,6 @@ app.post('/webhook/', function (req, res) {
                     sendTextMessage(sender, 'Error!');
                 }
             });
-
         } else {
             try {
                 text = req.body.entry[0].messaging[i].postback.title;
@@ -141,6 +106,7 @@ function InfoPersona(sender) {
         let u = '{';
         u += '"first_name": "' + infou.first_name + '",';
         u += '"last_name": "' + infou.last_name + '",';
+//       u += ' "profile_pic": "' + body.profile_pic+ '",';
         u += '"id": "' + infou.id + '"';
         u += '}';
         user = JSON.parse(u);
@@ -180,26 +146,17 @@ function selectTypeBotMessage(sender, body) {
     if (botOut.botUtterance !== null) {
         if (botOut.type !== null) {
             var ty = botOut.type;
-            var t1 = "saludo";
+            var t1 = "PreguntaSigno";
             var n1 = ty.localeCompare(t1);
-            var t2 = "MenuOpciones";
+            var t2 = "Agradecer";
             var n2 = ty.localeCompare(t2);
-            var t3 = "CertificarImagen";
+            var t3 = "ServicioHoroscopo";
             var n3 = ty.localeCompare(t3);
-            var t4 = "ConsultarImagen";
-            var n4 = ty.localeCompare(t4);
-            var t5 = "PreguntaImagen";
-            var n5 = ty.localeCompare(t5);
-            var t6 = "PreguntaHash";
-            var n6 = ty.localeCompare(t6);
-            var t7 = "PreguntaImagen2";
-            var n7 = ty.localeCompare(t7);
-            var t8 = "Error";
-            var n8 = ty.localeCompare(t8);
             if (n1 === 0) {
+                varPreguntaSigno = true;
                 sendTextMessage(sender, botOut.botUtterance);
             } else if (n2 === 0) {
-                sendTextMessageType(sender, botOut);
+                sendTextMessage(sender, botOut.botUtterance);
             } else if (n3 === 0) {
                 sendTextMessageList(sender, botOut)
                 if (botOut.buttons.length === 0) {
@@ -207,24 +164,6 @@ function selectTypeBotMessage(sender, body) {
                 } else {
                     sendTextMessageType(sender, botOut);
                 }
-            } else if (n4 === 0) {
-                sendTextMessageList(sender, botOut)
-                if (botOut.buttons.length === 0) {
-                    sendTextMessage(sender, botOut.botUtterance);
-                } else {
-                    sendTextMessageType(sender, botOut);
-                }
-            } else if (n5 === 0) {
-                varPreguntaImagen = true;
-                sendTextMessage(sender, botOut.botUtterance);
-            } else if (n6 === 0) {
-                varPreguntaHash = true;
-                sendTextMessage(sender, botOut.botUtterance);
-            } else if (n7 === 0) {
-                varPreguntaImagen2 = true;
-                sendTextMessage(sender, botOut.botUtterance);
-            } else if (n8 === 0) {
-                sendTextMessage(sender, botOut.botUtterance);
             } else {
                 if (botOut.buttons.length === 0) {
                     sendTextMessage(sender, botOut.botUtterance);
@@ -238,7 +177,6 @@ function selectTypeBotMessage(sender, body) {
         console.log(botOut.botUtterance);
     }
 }
-
 function sendTextMessageType(sender, bot) {
     let buttons = '[ ';
     for (var i = 0; i < bot.buttons.length; i++) {
@@ -343,7 +281,7 @@ function sendTextMessageList(sender, bot) {
             var n1 = bot.elements[i].url.localeCompare(t1);
             if (n1 !== 0) {
                 var url = bot.elements[i].url;
-                url=fixUrl(url);
+                url = fixUrl(url);
                 elements += ',"image_url":"' + url + '"';
             }
         } catch (err) {
@@ -405,16 +343,16 @@ function sendListText(sender, bot) {
 }
 
 function fixUrl(url) {
-    console.log("url"+url)
+    console.log("url" + url)
     var res = ''
-    var var2 = url.split("u003d"); 
+    var var2 = url.split("u003d");
     for (var i = 0; i < var2.length; i++) {
         if (i != 0) {
             res += '='
         }
         res += var2[i]
     }
-    var2 = res.split("u0026"); 
+    var2 = res.split("u0026");
     res = '';
     for (var i = 0; i < var2.length; i++) {
         if (i != 0) {
@@ -422,6 +360,6 @@ function fixUrl(url) {
         }
         res += var2[i]
     }
-    console.log("fix url "+res)
+    console.log("fix url " + res)
     return res;
 }
