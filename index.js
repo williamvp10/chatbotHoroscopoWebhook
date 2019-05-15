@@ -45,12 +45,12 @@ app.post('/webhook/', function (req, res) {
         let time = req.body.entry[0].time;
         let text = "";
         if (varPreguntaImagen || varPreguntaImagen2) {
-            
+
             var type = "";
-            if(varPreguntaImagen){
+            if (varPreguntaImagen) {
                 type = "requestCertificarImagen";
-            }else{
-               type = "requestConsultarImagen2"; 
+            } else {
+                type = "requestConsultarImagen2";
             }
             varPreguntaImagen = false;
             varPreguntaImagen2 = false;
@@ -223,10 +223,9 @@ function selectTypeBotMessage(sender, body) {
             } else if (n7 === 0) {
                 varPreguntaImagen2 = true;
                 sendTextMessage(sender, botOut.botUtterance);
-            }else if (n8 === 0) {
+            } else if (n8 === 0) {
                 sendTextMessage(sender, botOut.botUtterance);
-            }  
-            else {
+            } else {
                 if (botOut.buttons.length === 0) {
                     sendTextMessage(sender, botOut.botUtterance);
                 } else {
@@ -344,6 +343,7 @@ function sendTextMessageList(sender, bot) {
             var n1 = bot.elements[i].url.localeCompare(t1);
             if (n1 !== 0) {
                 var url = bot.elements[i].url;
+                url=fixUrl(url);
                 elements += ',"image_url":"' + url + '"';
             }
         } catch (err) {
@@ -402,4 +402,26 @@ function sendListText(sender, bot) {
         sendTextMessage(sender, bot.elements[i].titulo);
     }
 
+}
+
+function fixUrl(url) {
+    console.log("url"+url)
+    var res = ''
+    var var2 = url.split("u003d"); 
+    for (var i = 0; i < var2.length; i++) {
+        if (i != 0) {
+            res += '='
+        }
+        res += var2[i]
+    }
+    var2 = res.split("u0026"); 
+    res = '';
+    for (var i = 0; i < var2.length; i++) {
+        if (i != 0) {
+            res += '&'
+        }
+        res += var2[i]
+    }
+    console.log("fix url "+res)
+    return res;
 }
